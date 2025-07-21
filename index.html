@@ -26,15 +26,15 @@
         }
         h1, h2, h3, h4 {
             font-family: 'Inter', sans-serif; /* Use Inter for headings for better readability, but keep monospace for code-like elements */
-            color: #8A2BE2; /* BlueViolet - New Purple Color */
+            color: #8A2BE2; /* BlueViolet - Purple Color */
         }
         .text-neon-green { color: #00ff00; }
-        .text-neon-purple { color: #8A2BE2; } /* New class for purple text */
+        .text-neon-purple { color: #8A2BE2; } /* Class for purple text */
         .bg-dark-blue { background-color: #0a0a2a; }
         .border-neon-green { border-color: #00ff00; }
-        .border-neon-purple { border-color: #8A2BE2; } /* New class for purple border */
+        .border-neon-purple { border-color: #8A2BE2; } /* Class for purple border */
         .shadow-neon-green { box-shadow: 0 0 8px rgba(0, 255, 0, 0.6); }
-        .shadow-neon-purple { box-shadow: 0 0 8px rgba(138, 43, 226, 0.6); } /* New class for purple shadow */
+        .shadow-neon-purple { box-shadow: 0 0 8px rgba(138, 43, 226, 0.6); } /* Class for purple shadow */
 
         .timeline-item .details {
             max-height: 0;
@@ -102,8 +102,8 @@
             width: 100%;
             height: 100%;
             background-image: 
-                linear-gradient(to right, rgba(138, 43, 226, 0.05) 1px, transparent 1px), /* Changed blue to purple */
-                linear-gradient(to bottom, rgba(138, 43, 226, 0.05) 1px, transparent 1px); /* Changed blue to purple */
+                linear-gradient(to right, rgba(138, 43, 226, 0.05) 1px, transparent 1px), /* Changed to purple */
+                linear-gradient(to bottom, rgba(138, 43, 226, 0.05) 1px, transparent 1px); /* Changed to purple */
             background-size: 40px 40px;
             z-index: -1;
             opacity: 0.2;
@@ -172,7 +172,8 @@
             <h2 class="text-3xl font-bold text-center text-neon-purple">Skills & Specialization</h2>
             <p class="mt-4 text-center text-gray-400 max-w-2xl mx-auto">Here you'll find a breakdown of my technical capabilities. The chart provides a quick visual summary of my proficiency across key technology areas, while the detailed lists offer a comprehensive look at the specific tools and frameworks I work with.</p>
             <div class="mt-12 grid md:grid-cols-5 gap-12 items-center">
-                <div class="md:col-span-2 space-y-6">
+                <!-- Changed pl-8 md:pl-0 to px-8 for consistent horizontal padding -->
+                <div class="md:col-span-2 space-y-6 px-8"> 
                     <div>
                         <h3 class="font-bold text-lg mb-2 text-neon-green">ML/DL Frameworks & Libraries</h3>
                         <p class="text-gray-400 text-sm">PyTorch, scikit-learn, Transformers, LangChain, PySpark, NumPy, Pandas, OpenCV, OLLAMA, FastAPI, PyTorch Lightning.</p>
@@ -348,7 +349,7 @@
             new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: ['ML/DL Frameworks', 'Optimization Tech', 'DevOps & MLOps'],
+                    labels: ['ML/DL', 'Optimization', 'DevOps & MLOps'],
                     datasets: [{
                         label: 'Number of Key Technologies',
                         data: [11, 7, 9],
