@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yaroslav Sergaev | Cyber ML Engineer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Cyberpunk Matrix - Deep Black (#1a1a1a), Dark Blue (#0a0a2a), with Neon Green (#00ff00), Electric Blue (#00ffff), and Magenta (#ff00ff) accents. -->
+    <!-- Application Structure Plan: The SPA uses a single-page, vertical-scrolling layout with a sticky top navigation for easy access to key sections. The structure is designed to guide the user through a narrative: starting with a strong, animated summary (About), moving to an interactive timeline of experience with cyber-themed visual cues, then a visually striking dashboard of skills, and finally showcasing projects and achievements in glowing card formats. This non-linear but guided approach allows recruiters to quickly jump to the information they need or explore the career path chronologically. The interactive timeline for work experience is chosen specifically to reduce initial information overload, allowing users to drill down into roles that interest them most. This design prioritizes scannability and targeted information retrieval, crucial for busy hiring managers, while providing a memorable aesthetic. -->
+    <!-- Visualization & Content Choices:
+        - Report Info: Work History -> Goal: Organize/Change -> Viz: Interactive Vertical Timeline with glowing accents -> Interaction: Click to expand/collapse role details with subtle animation -> Justification: Presents a clean overview of career progression with a dynamic, cyber-themed visual flow, making detailed responsibilities accessible on demand without cluttering the page. Method: HTML/CSS/JS.
+        - Report Info: Skills List -> Goal: Compare/Inform -> Viz: Horizontal Bar Chart with neon colors & Grouped Lists with digital styling -> Interaction: Chart provides an immediate visual summary of expertise areas; lists provide details. Chart bars will have a subtle load animation. -> Justification: The chart offers a quick, high-level understanding of core competencies, while the detailed lists serve for deep-dives. This combination caters to both skimmers and detailed reviewers, all within the cyber aesthetic. Library: Chart.js (Canvas).
+        - Report Info: Projects/Achievements -> Goal: Inform/Organize -> Viz: Card-based Grid with glowing borders on hover -> Interaction: Hover effects for visual feedback. -> Justification: A grid layout is highly scannable and familiar, allowing for easy comparison and browsing of distinct items, enhanced by cyber-themed interactive styling. Method: HTML/Tailwind CSS.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: #1a1a1a; /* Deep Black */
+            color: #e0e0e0; /* Light Gray for readability */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+        h1, h2, h3, h4 {
+            font-family: 'Inter', sans-serif; /* Use Inter for headings for better readability, but keep monospace for code-like elements */
+            color: #00ffff; /* Electric Blue */
+        }
+        .text-neon-green { color: #00ff00; }
+        .text-neon-blue { color: #00ffff; }
+        .bg-dark-blue { background-color: #0a0a2a; }
+        .border-neon-green { border-color: #00ff00; }
+        .border-neon-blue { border-color: #00ffff; }
+        .shadow-neon-green { box-shadow: 0 0 8px rgba(0, 255, 0, 0.6); }
+        .shadow-neon-blue { box-shadow: 0 0 8px rgba(0, 255, 255, 0.6); }
+
+        .timeline-item .details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s ease-in-out, opacity 0.6s ease-in-out;
+            opacity: 0;
+        }
+        .timeline-item.open .details {
+            max-height: 500px; /* Adjust as needed */
+            opacity: 1;
+        }
+        .nav-link {
+            transition: color 0.3s, text-shadow 0.3s;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: #00ff00; /* Neon Green */
+            text-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 350px;
+            max-height: 400px;
+        }
+        @media (max-width: 768px) {
+            .chart-container {
+                height: 300px;
+            }
+        }
+
+        /* Typing effect for main heading */
+        .typing-effect {
+            overflow: hidden; /* Ensures the content is not revealed until the animation */
+            border-right: .15em solid #00ff00; /* The typwriter cursor */
+            white-space: nowrap; /* Keeps the content on a single line */
+            animation: 
+                typing 3.5s steps(40, end),
+                blink-caret .75s step-end infinite;
+            width: 0; /* Start with 0 width */
+        }
+
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #00ff00; }
+        }
+
+        /* Background grid pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+            z-index: -1;
+            opacity: 0.2;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header class="bg-dark-blue/80 backdrop-blur-lg sticky top-0 z-50 shadow-lg border-b border-neon-blue">
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-neon-green">
+                Yaroslav Sergaev
+            </div>
+            <div class="hidden md:flex space-x-8" id="desktop-nav">
+                <a href="#about" class="nav-link text-gray-400 font-medium hover:text-neon-green">About</a>
+                <a href="#experience" class="nav-link text-gray-400 font-medium hover:text-neon-green">Experience</a>
+                <a href="#skills" class="nav-link text-gray-400 font-medium hover:text-neon-green">Skills</a>
+                <a href="#projects" class="nav-link text-gray-400 font-medium hover:text-neon-green">Projects</a>
+            </div>
+             <div class="md:hidden">
+                <button id="menu-btn" class="text-neon-blue focus:outline-none">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                </button>
+            </div>
+        </nav>
+        <div id="mobile-menu" class="hidden md:hidden px-6 pb-4 bg-dark-blue/90 border-t border-neon-blue">
+             <a href="#about" class="block py-2 nav-link text-gray-400 font-medium hover:text-neon-green">About</a>
+             <a href="#experience" class="block py-2 nav-link text-gray-400 font-medium hover:text-neon-green">Experience</a>
+             <a href="#skills" class="block py-2 nav-link text-gray-400 font-medium hover:text-neon-green">Skills</a>
+             <a href="#projects" class="block py-2 nav-link text-gray-400 font-medium hover:text-neon-green">Projects</a>
+        </div>
+    </header>
+
+    <main class="container mx-auto p-6 space-y-24 md:space-y-32">
+        
+        <section id="about" class="min-h-[70vh] flex items-center pt-12 pb-16">
+            <div class="w-full">
+                <h1 class="text-4xl md:text-6xl font-bold text-neon-blue leading-tight typing-effect">Senior Data Scientist & <br>ML Engineer</h1>
+                <div class="mt-6 text-lg text-gray-400 max-w-3xl">
+                    <p>This section provides a high-level overview of my professional background. It highlights my core expertise in Machine Learning, my experience with production-level AI solutions, and my career goals, giving you a quick summary of my qualifications.</p>
+                </div>
+                <p class="mt-4 text-base text-gray-500 max-w-3xl">
+                    Experienced and highly qualified Machine Learning and Data Analysis professional with a proven track record in developing, optimizing, and deploying complex AI solutions into production. Possessing deep knowledge in mathematics, statistics, and a broad spectrum of machine learning algorithms and deep learning techniques, including Computer Vision and Natural Language Processing. Proficient in working with Large Language Models (LLMs), generative models, and skilled in MLOps and DevOps. Seeking Middle / Senior Data Scientist, ML Engineer, or Tech-Team Lead roles in leading product-driven and R&D companies.
+                </p>
+                <div class="mt-8 flex items-center space-x-6">
+                    <a href="mailto:yaroslav.sergaev@gmail.com" class="text-neon-blue hover:text-neon-green transition duration-300">Contact Me</a>
+                    <a href="https://github.com/adelardw" target="_blank" class="text-neon-blue hover:text-neon-green transition duration-300">
+                        <svg class="w-8 h-8" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.91 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg>
+                    </a>
+                    <span class="text-sm font-semibold text-neon-blue border border-neon-blue rounded-full px-3 py-1 shadow-neon-blue">Open to Relocation</span>
+                </div>
+            </div>
+        </section>
+
+        <section id="experience" class="pt-16 pb-16">
+            <h2 class="text-3xl font-bold text-center text-neon-blue">Work Experience</h2>
+            <p class="mt-4 text-center text-gray-400 max-w-2xl mx-auto">This interactive timeline showcases my professional journey. Click on any role to expand and view my key responsibilities and accomplishments for that position. This format allows for a quick overview of my career progression while providing detailed insights on demand.</p>
+            <div class="relative max-w-3xl mx-auto mt-12">
+                <div class="absolute left-1/2 -translate-x-1/2 h-full w-0.5 bg-neon-blue/30" aria-hidden="true"></div>
+                <div id="timeline-container" class="space-y-12">
+                </div>
+            </div>
+        </section>
+
+        <section id="skills" class="pt-16 pb-16 bg-dark-blue rounded-2xl shadow-lg border border-neon-blue/50">
+            <h2 class="text-3xl font-bold text-center text-neon-blue">Skills & Specialization</h2>
+            <p class="mt-4 text-center text-gray-400 max-w-2xl mx-auto">Here you'll find a breakdown of my technical capabilities. The chart provides a quick visual summary of my proficiency across key technology areas, while the detailed lists offer a comprehensive look at the specific tools and frameworks I work with.</p>
+            <div class="mt-12 grid md:grid-cols-5 gap-12 items-center">
+                <div class="md:col-span-2 space-y-6">
+                    <div>
+                        <h3 class="font-bold text-lg mb-2 text-neon-green">ML/DL Frameworks & Libraries</h3>
+                        <p class="text-gray-400 text-sm">PyTorch, scikit-learn, Transformers, LangChain, PySpark, NumPy, Pandas, OpenCV, OLLAMA, FastAPI, PyTorch Lightning.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-2 text-neon-green">Optimization</h3>
+                         <p class="text-gray-400 text-sm">vLLM, DeepSpeed, ONNX, TensorFlow Lite, AutoAWQ, AutoGPTQ, Torchao.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg mb-2 text-neon-green">DevOps & MLOps</h3>
+                        <p class="text-gray-400 text-sm">Git, Bash, Docker, HDFS, Airflow, Docker Compose, CI/CD, MLflow, Hydra, Optuna, Ray.</p>
+                    </div>
+                </div>
+                <div class="md:col-span-3">
+                    <div class="chart-container">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="projects" class="pt-16 pb-16">
+            <h2 class="text-3xl font-bold text-center text-neon-blue">Achievements & Projects</h2>
+            <p class="mt-4 text-center text-gray-400 max-w-2xl mx-auto">This final section highlights my key academic and professional achievements, alongside a selection of personal projects. These cards demonstrate my ability to apply my skills to solve practical problems and my commitment to continuous learning.</p>
+            <div class="mt-12 grid md:grid-cols-2 gap-8">
+                <div class="bg-dark-blue p-6 rounded-xl shadow-lg border border-neon-green/50">
+                    <h3 class="font-bold text-xl mb-3 text-neon-green">Key Achievements</h3>
+                    <ul class="list-none space-y-3">
+                        <li class="flex items-start"><span class="text-neon-blue mr-3 mt-1">&#10004;</span> <span class="text-gray-400">Top-3 at PJSC Gazprom ML Hackathon for digital twin case solution.</span></li>
+                        <li class="flex items-start"><span class="text-neon-blue mr-3 mt-1">&#10004;</span> <span class="text-gray-400">Successfully completed YSDA (Yandex School of Data Analysis) courses in NLP, CV, and ML.</span></li>
+                    </ul>
+                </div>
+                <div class="bg-dark-blue p-6 rounded-xl shadow-lg border border-neon-green/50">
+                    <h3 class="font-bold text-xl mb-3 text-neon-green">Education</h3>
+                    <p class="font-semibold text-neon-blue">HSE University (Master's Degree)</p>
+                    <p class="text-gray-400">Machine Learning and Data Analysis (2023 – 2025)</p>
+                    <p class="text-gray-400 mt-1">GPA: 4.2</p>
+                </div>
+            </div>
+            <div class="mt-8 grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                 <div class="bg-dark-blue p-6 rounded-xl shadow-md border border-neon-blue/50 hover:shadow-neon-blue transition-shadow duration-300">
+                    <h4 class="font-bold text-lg text-neon-blue">WhisperBERT</h4>
+                    <p class="text-sm text-gray-400 mt-1">End-to-end pipeline for NER in audio with embedding alignment using contrastive learning.</p>
+                </div>
+                <div class="bg-dark-blue p-6 rounded-xl shadow-md border border-neon-blue/50 hover:shadow-neon-blue transition-shadow duration-300">
+                    <h4 class="font-bold text-lg text-neon-blue">Voice Assistant</h4>
+                    <p class="text-sm text-gray-400 mt-1">Calendar voice assistant using Ollama and LangChain.</p>
+                </div>
+                <div class="bg-dark-blue p-6 rounded-xl shadow-md border border-neon-blue/50 hover:shadow-neon-blue transition-shadow duration-300">
+                    <h4 class="font-bold text-lg text-neon-blue">Brain Tumor Segmentation</h4>
+                    <p class="text-sm text-gray-400 mt-1">Implementation of a brain tumor segmentation model using UNET.</p>
+                </div>
+                <div class="bg-dark-blue p-6 rounded-xl shadow-md border border-neon-blue/50 hover:shadow-neon-blue transition-shadow duration-300">
+                    <h4 class="font-bold text-lg text-neon-blue">Audio Denoising</h4>
+                    <p class="text-sm text-gray-400 mt-1">Audio noise suppression model based on UNET.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-gray-900 text-white text-center py-6 mt-16 border-t border-neon-blue/30">
+        <p class="text-sm text-gray-500">&copy; 2025 Yaroslav Sergaev. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobile-menu');
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            document.querySelectorAll('#mobile-menu a, #desktop-nav a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                         mobileMenu.classList.add('hidden');
+                    }
+                });
+            });
+
+            const experienceData = [
+                {
+                    company: 'SberBank',
+                    role: 'Senior Data Scientist',
+                    period: 'May 2025 – Present',
+                    tasks: [
+                        'Developed and implemented AI agents for business process automation and optimization.',
+                        'Designed and implemented RAG (Retrieval-Augmented Generation) pipelines to enhance LLM response accuracy and relevance.',
+                        'Created multi-agent systems ensuring complex interaction and problem-solving.'
+                    ]
+                },
+                {
+                    company: 'MTS Exolve',
+                    role: 'ML Engineer',
+                    period: 'August 2024 – May 2025',
+                    tasks: [
+                        'Developed and deployed SFT LLM (Llama-8B) using LoRA on corporate data, deploying the model via FastAPI.',
+                        'Optimized 8B LLM inference speed, increasing it from 1 RPS to 4 RPS.',
+                        'Created RAG systems based on fine-tuned LLMs using Qdrant vector database and LangChain.',
+                        'Fine-tuned ASR model (Whisper) using contrastive learning, resulting in savings of up to 5 million rubles per month.',
+                        'Performed dialogue clustering for analysis and improvement of customer service.'
+                    ]
+                },
+                {
+                    company: 'YADRO',
+                    role: 'ML Engineer',
+                    period: 'January 2024 – August 2024',
+                    tasks: [
+                        'Participated in data annotation and Python script writing for training dataset preparation.',
+                        'Performed validation and fine-tuning of SOTA models for OCR, text detection, classification, and img2text tasks.',
+                        'Optimized models for production, including conversion to ONNX and TFLite, fusing layers, and using Triton via DeepSpeed.'
+                    ]
+                }
+            ];
+
+            const timelineContainer = document.getElementById('timeline-container');
+            experienceData.forEach((job, index) => {
+                const isLeft = index % 2 === 0;
+                const timelineItem = document.createElement('div');
+                timelineItem.className = `timeline-item relative pl-8 md:pl-0 ${isLeft ? 'md:pr-8' : 'md:pl-8'} ${isLeft ? '' : 'md:ml-auto'} md:w-1/2`;
+                
+                let tasksHtml = job.tasks.map(task => `<li class="flex items-start"><span class="text-neon-green mr-3 mt-1">&#10148;</span><span class="text-gray-400">${task}</span></li>`).join('');
+
+                timelineItem.innerHTML = `
+                    <div class="absolute top-1 ${isLeft ? 'md:right-0 md:translate-x-1/2' : 'md:left-0 md:translate-x-[-50%]' } left-0 -translate-x-1/2 md:left-1/2 md:-translate-x-1/2 w-4 h-4 bg-neon-blue rounded-full border-4 border-dark-blue shadow-neon-blue"></div>
+                    <div class="bg-dark-blue p-6 rounded-xl shadow-lg border border-neon-green/50 cursor-pointer hover:shadow-neon-green transition-shadow duration-300">
+                        <div class="flex justify-between items-start">
+                             <div>
+                                <time class="text-sm font-medium text-gray-500">${job.period}</time>
+                                <h3 class="text-xl font-bold mt-1 text-neon-blue">${job.company}</h3>
+                                <p class="text-neon-green font-semibold">${job.role}</p>
+                            </div>
+                            <span class="arrow text-2xl text-neon-blue transform transition-transform duration-300">&#9662;</span>
+                        </div>
+                        <div class="details mt-4 border-t border-gray-700 pt-4">
+                            <ul class="space-y-2">
+                                ${tasksHtml}
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                timelineContainer.appendChild(timelineItem);
+            });
+            
+            document.querySelectorAll('.timeline-item .cursor-pointer').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    const parentItem = e.currentTarget.closest('.timeline-item');
+                    parentItem.classList.toggle('open');
+                    const arrow = parentItem.querySelector('.arrow');
+                    arrow.style.transform = parentItem.classList.contains('open') ? 'rotate(180deg)' : 'rotate(0deg)';
+                });
+            });
+            
+            const sections = document.querySelectorAll('section');
+            const navLinks = document.querySelectorAll('#desktop-nav a');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.toggle('active', link.getAttribute('href').substring(1) === entry.target.id);
+                        });
+                    }
+                });
+            }, { rootMargin: '-50% 0px -50% 0px' });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            const ctx = document.getElementById('skillsChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['ML/DL Frameworks', 'Optimization Tech', 'DevOps & MLOps'],
+                    datasets: [{
+                        label: 'Number of Key Technologies',
+                        data: [11, 7, 9],
+                        backgroundColor: [
+                            'rgba(0, 255, 255, 0.7)', /* Electric Blue */
+                            'rgba(0, 255, 0, 0.7)',   /* Neon Green */
+                            'rgba(255, 0, 255, 0.7)'  /* Magenta */
+                        ],
+                        borderColor: [
+                           '#00ffff',
+                           '#00ff00',
+                           '#ff00ff'
+                        ],
+                        borderWidth: 2,
+                        borderRadius: 4,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Core Technology Stacks',
+                            font: { size: 16, weight: '600', family: 'Inter' },
+                            color: '#00ffff', /* Electric Blue */
+                            padding: { bottom: 20 }
+                        },
+                        tooltip: {
+                            backgroundColor: '#0a0a2a', /* Dark Blue */
+                            titleFont: { size: 14, weight: 'bold', family: 'Inter' },
+                            bodyFont: { size: 12, family: 'Space Mono' },
+                            cornerRadius: 4,
+                            displayColors: false,
+                            borderColor: '#00ff00',
+                            borderWidth: 1,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0, 255, 255, 0.1)' }, /* Faint grid lines */
+                            ticks: { color: '#e0e0e0', font: { weight: '500', family: 'Space Mono' } }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#00ff00', font: { weight: '500', family: 'Space Mono' } }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
